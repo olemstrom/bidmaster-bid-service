@@ -23,10 +23,14 @@ const consume = (topic: string, channel: Channel) => {
 
 export const publish = (topic: string, message: {}) => {
     const send = sendToQueue.bind(null, topic, JSON.stringify(message));
-    return channel.then(send).catch(console.warn);
+    return channel.then(send).catch(console.error);
 };
 
 export const listen = (topic: string): Observable<any> => Observable.fromPromise(channel)
         .switchMap(consume.bind(null, topic))
-        .filter(val => Boolean(val));
+        .filter(val => Boolean(val))
+        .catch((err: Error) => {
+            console.error(err);
+            return Observable.throw(err);
+        });
 
