@@ -14,14 +14,14 @@ const getBids = (itemId) => {
 const bidItem = (itemId) => {
 
     return new Promise((resolve, reject) => {
-        request.post('http://localhost:8081/api/bid/' + itemId, (err, res, body) => {
+        request.post('http://localhost:8081/api/bid/' + itemId, {json: { amount: 10 }}, (err, res, body) => {
             if(!err) resolve(body);
         }).on('error', reject)
     })
 
-}
+};
 
-redis.keys('*item_bids*')
+redis.keys('item_bids:bPJBliNeXQ')
     .then(res => res[0])
     .then(id => id.replace('item_bids:', ''))
     .then((itemId) => {

@@ -1,7 +1,9 @@
 import * as KoaRouter from 'koa-router';
 
 import { Context, Request } from 'koa'
-import { Bid, getBids, acceptBid } from './bid';
+import { Bid, getBids, acceptBid, validateBid } from './bid';
+import { publish } from './queue';
+
 
 interface RequestWithBody extends Request {
     body: {[key: string]: string };
@@ -36,8 +38,13 @@ router.get('/api/bids/:item_id', function* (context: Context) {
 
 router.post('/api/bid/:item_id', function* (context: Context) {
     try {
-        yield acceptBid(createBid(this));
-        this.body = { status: 'ok', message: 'Bid sent succesfully' };
+        const bid = createBid(this);
+        const isValid = yield validateBid(bid);
+
+        yield publish('bid.valid', bid);
+
+        const message = isValid ? 'Bid validated' : 'Bid was not valid - Bidding has already closed';
+        this.body = { status: 'ok', message };
     } catch(err) {
         console.error(err);
         this.status = 500;
