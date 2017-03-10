@@ -7,20 +7,26 @@ import * as bodyparser from 'koa-bodyparser';
 
 import { routes } from './routes';
 import { listen } from './queue';
-import { Catalog } from './catalog';
+import {Bid, acceptBid} from "./bid";
 
 const app = new Koa();
 
-console.log('Starting catalog service');
+console.log('Starting bid service');
 
 app.use(json({ pretty: false }));
 app.use(bodyparser());
 app.use(routes);
 app.listen(process.env.PORT || '8080');
 
+const itemToBid = (item: any): Bid => ({
+    item_id: item.id,
+    valid_until: new Date(item.estimated_close),
+    bid_amount: item.current_price
+});
+
 listen('catalog.add')
     .map(msg => JSON.parse(msg))
     .map(msg => msg.item)
-    .map(item => item.id)
-    .switchMap(Catalog.get)
-    .subscribe(msg => console.log(msg));
+    .map(item => itemToBid(item))
+    .do(acceptBid)
+    .subscribe(bid => console.log(bid));
