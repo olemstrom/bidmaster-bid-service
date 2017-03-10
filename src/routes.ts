@@ -41,7 +41,7 @@ router.post('/api/bid/:item_id', function* (context: Context) {
         const bid = createBid(this);
         const isValid = yield validateBid(bid);
 
-        yield publish('bid.valid', bid);
+        yield publish('bid.accept', bid);
 
         const message = isValid ? 'Bid validated' : 'Bid was not valid - Bidding has already closed';
         this.body = { status: 'ok', message };

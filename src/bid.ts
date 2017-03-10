@@ -39,7 +39,7 @@ export const validateBid = (bid: Bid): Promise<boolean> => {
             const now = Date.now();
             return isBefore(now, close);
         });
-}
+};
 
 export const acceptBid = (bid: Bid): Promise<Bid> => {
     const bidWithId = Object.assign(bid, { id: randomId(10) });

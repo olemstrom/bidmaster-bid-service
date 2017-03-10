@@ -28,21 +28,19 @@ listen('catalog.add')
     .map(msg => JSON.parse(msg))
     .map(msg => msg.item)
     .do(storeItem)
-    .do(item => console.log(item))
     .map(item => itemToBid(item))
     .switchMap((bid: Bid) => Observable.fromPromise(validateBid(bid)).map(valid => ({ bid, valid }) ))
     .filter((validatedBid: any) => validatedBid.valid)
     .map((validatedBid: any) => validatedBid.bid)
-    .do((bid: Bid) => publish('bid.valid', bid))
+    .do((bid: Bid) => publish('bid.accept', bid))
     .subscribe(
         bid => console.log('New item received', bid),
         err => console.error(err)
 );
 
-listen('bid.valid')
+listen('bid.accept')
     .map(msg => JSON.parse(msg))
     .do(acceptBid)
-    .do(bid => publish('bid.accept', bid))
     .subscribe(
         bid => console.log('Bid accepted', bid),
         err => console.error(err)
