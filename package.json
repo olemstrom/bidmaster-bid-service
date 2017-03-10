@@ -12,6 +12,7 @@
   "devDependencies": {
     "@types/amqplib": "^0.5.1",
     "@types/dotenv": "^2.0.20",
+    "@types/ioredis": "0.0.22",
     "@types/koa": "^2.0.38",
     "@types/koa-bodyparser": "^3.0.23",
     "@types/koa-json": "^2.0.16",
@@ -23,6 +24,7 @@
   "dependencies": {
     "amqplib": "^0.5.1",
     "dotenv": "^4.0.0",
+    "ioredis": "^2.5.0",
     "koa": "^1.2.5",
     "koa-bodyparser": "^2.3.0",
     "koa-json": "^1.1.3",

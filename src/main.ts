@@ -27,6 +27,7 @@ const itemToBid = (item: any): Bid => ({
 listen('catalog.add')
     .map(msg => JSON.parse(msg))
     .map(msg => msg.item)
+    .do(item => console.log(item))
     .map(item => itemToBid(item))
     .do(acceptBid)
     .subscribe(bid => console.log(bid));
