@@ -7,7 +7,7 @@ const redis = new Redis(process.env.REDIS_PORT, process.env.REDIS_HOST);
 export interface Bid {
     id?: string;
     item_id: string;
-    valid_until: Date;
+    valid_until?: Date;
     bid_amount: number;
 }
 
@@ -20,18 +20,19 @@ export const acceptBid = (bid: Bid): Promise<Bid> => {
     const bidWithId = Object.assign(bid, { id: randomId(10) });
     return redis
         .multi()
-        .set(`bid:${bidWithId.id}`, bid)
+        .set(`bid:${bidWithId.id}`, JSON.stringify(bid))
         .rpush(`item_bids:${bidWithId.item_id}`, bidWithId.id)
         .exec()
         .then(() => bidWithId);
 };
 
-export const getBid = (bidId: string): Promise<Bid> => redis.get(`bid:${bidId}`)
+export const getBid = (bidId: string): Promise<Bid> => redis.get(`bid:${bidId}`).then((bidJson: string) => JSON.parse(bidJson));
 
 export const getBids = (itemId: string): Promise<Bid[]> => {
     return redis
-        .get(`item_bids:${itemId}`)
-        .then((bids: string[]) => bids.map(getBid));
+        .lrange(`item_bids:${itemId}`, 0, -1)
+        .then((bids: string[]) => bids.map(getBid))
+        .then((bidPromises: Promise<Bid>[]) => Promise.all(bidPromises))
 };
 
 export const getItemPrice = (itemId: string): Promise<TotalPrice> => {
@@ -40,5 +41,3 @@ export const getItemPrice = (itemId: string): Promise<TotalPrice> => {
         amount: bids.map(bid => bid.bid_amount).reduce((total, amount) => total + amount)
     }));
 };
-
-
