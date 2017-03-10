@@ -21,7 +21,7 @@ const bidItem = (itemId) => {
 
 };
 
-redis.keys('item_bids:bPJBliNeXQ')
+redis.keys('item_bids:MQwFuPPg6g')
     .then(res => res[0])
     .then(id => id.replace('item_bids:', ''))
     .then((itemId) => {

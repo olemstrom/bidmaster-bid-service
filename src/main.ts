@@ -33,15 +33,8 @@ listen('catalog.add')
     .filter((validatedBid: any) => validatedBid.valid)
     .map((validatedBid: any) => validatedBid.bid)
     .do((bid: Bid) => publish('bid.accept', bid))
+    .do(acceptBid)
     .subscribe(
         bid => console.log('New item received', bid),
         err => console.error(err)
 );
-
-listen('bid.accept')
-    .map(msg => JSON.parse(msg))
-    .do(acceptBid)
-    .subscribe(
-        bid => console.log('Bid accepted', bid),
-        err => console.error(err)
-    );
