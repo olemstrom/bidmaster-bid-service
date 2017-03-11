@@ -2,8 +2,6 @@ import * as KoaRouter from 'koa-router';
 
 import { Context, Request } from 'koa'
 import { Bid, getBids, acceptBid, validateBid } from './bid';
-import { publish } from './queue';
-
 
 interface RequestWithBody extends Request {
     body: {[key: string]: string };

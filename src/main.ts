@@ -7,8 +7,11 @@ import * as bodyparser from 'koa-bodyparser';
 import { Observable } from 'rxjs/Rx';
 
 import { routes } from './routes';
-import { listen, publish } from './queue';
+import { AmqpConnector } from 'amqp-connector';
+
 import { Bid, acceptBid, storeItem, validateBid } from "./bid";
+
+export const amqp = new AmqpConnector(process.env.AMQP_URL);
 
 const app = new Koa();
 
@@ -24,7 +27,7 @@ const itemToBid = (item: any): Bid => ({
     bid_amount: item.current_price
 });
 
-listen('catalog.add')
+amqp.listen('catalog.add')
     .map(msg => JSON.parse(msg))
     .map(msg => msg.item)
     .do(storeItem)
@@ -32,7 +35,7 @@ listen('catalog.add')
     .switchMap((bid: Bid) => Observable.fromPromise(validateBid(bid)).map(valid => ({ bid, valid }) ))
     .filter((validatedBid: any) => validatedBid.valid)
     .map((validatedBid: any) => validatedBid.bid)
-    .do((bid: Bid) => publish('bid.accept', bid))
+    .do((bid: Bid) => amqp.publish('bid.accept', bid))
     .do(acceptBid)
     .subscribe(
         bid => console.log('New item received', bid),

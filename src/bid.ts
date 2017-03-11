@@ -1,7 +1,7 @@
 import * as Redis from 'ioredis';
 
 import { randomId, isBefore } from './utils';
-import { publish } from './queue';
+import { amqp } from './main';
 
 const redis = new Redis(process.env.REDIS_PORT, process.env.REDIS_HOST);
 const BID_REVIVE_TIME = 5 * 60 * 1000; // Time a bid lifetime is extended with, if bid is sent just before close
@@ -54,7 +54,7 @@ export const validateBid = (bid: Bid): Promise<boolean> => {
 export const acceptBid = (bid: Bid): Promise<Bid> => {
     const bidWithId = Object.assign(bid, { id: randomId(10) });
     return validateBid(bidWithId).then(valid => {
-        if(!valid) return publish('bid.reject', bidWithId).then(() => false);
+        if(!valid) return amqp.publish('bid.reject', bidWithId).then(() => false);
         return redis
             .watch(REDIS_IDS.itemBids(bidWithId.item_id))
             .then(() => {
@@ -63,7 +63,7 @@ export const acceptBid = (bid: Bid): Promise<Bid> => {
                     .rpush(REDIS_IDS.itemBids(bidWithId.item_id), bidWithId.id)
                     .exec()
             })
-            .then(() => publish('bid.accept', bidWithId))
+            .then(() => amqp.publish('bid.accept', bidWithId))
             .then(() => true)
             .catch((e: Error) => { throw e });
     });
