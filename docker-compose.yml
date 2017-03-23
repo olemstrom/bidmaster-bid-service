@@ -6,6 +6,8 @@ services:
       dockerfile: ./docker/Dockerfile.service
     ports:
       - "8081:8081"
+    links:
+      - redis
   redis:
     image: "redis:latest"
     ports:
